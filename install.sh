@@ -1,8 +1,8 @@
 #!/bin/bash
-# 检测当前用户是否为 root 用户
+# Check if the current user is root
 if [ "$EUID" -ne 0 ]; then
-  echo "请使用 root 用户执行此脚本！"
-  echo "你可以使用 'sudo -i' 进入 root 用户模式。"
+  echo "Please run this script as root!"
+  echo "You can use 'sudo -i' to enter root mode."
   exit 1
 fi
 
@@ -19,10 +19,10 @@ check_sys() {
 
   if [[ -f /etc/debian_version ]]; then
     OS_type="Debian"
-    echo "检测为Debian通用系统，判断有误请反馈"
+    echo "Deatcted Debian system. If incorrect, please report."
   elif [[ -f /etc/redhat-release || -f /etc/centos-release || -f /etc/fedora-release || -f /etc/rocky-release ]]; then
     OS_type="CentOS"
-    echo "检测为CentOS通用系统，判断有误请反馈"
+    echo "Detected CentOS system. If incorrect, please report."
   else
     echo "Unknown"
   fi
@@ -52,7 +52,7 @@ if [ -f /etc/os-release ]; then
     OS_TYPE=$ID
     OS_VERSION=$VERSION_ID
 else
-    echo "无法确定操作系统类型。"
+    echo "Unable to determine OS type."
     exit 1
 fi
 
@@ -64,23 +64,23 @@ install_custom_packages() {
         yum install -y epel-release
         yum install -y wget sed sudo openssl net-tools psmisc procps-ng iptables iproute ca-certificates jq
     else
-        echo "不支持的操作系统。"
+        echo "Unsupported OS."
         exit 1
     fi
 }
 
 install_custom_packages
 
-echo "已安装的软件包："
+echo "Installed packages:"
 for pkg in wget sed openssl iptables jq; do
     if command -v $pkg >/dev/null 2>&1; then
-        echo "$pkg 已安装"
+        echo "$pkg is installed"
     else
-        echo "$pkg 未安装"
+        echo "$pkg is not installed"
     fi
 done
 
-echo "所有指定的软件包均已安装完毕。"
+echo "All specified packages are installed."
 
 set_architecture() {
   case "$(uname -m)" in
@@ -110,7 +110,7 @@ set_architecture() {
       ;;
     *)
 
-      echo "暂时不支持你的系统哦，可能是因为不在已知架构范围内。"
+      echo "System temporarily unsupported, possibly because it's not within the known architecture range."
       exit 1
       ;;
   esac
@@ -120,7 +120,7 @@ get_installed_version() {
     if [ -x "/root/hy3/hysteria-linux-$arch" ]; then
         version="$("/root/hy3/hysteria-linux-$arch" version | grep Version | grep -o 'v[.0-9]*')"
     else
-        version="你还没有安装,老登"
+        version="Not installed yet"
     fi
 }
 
@@ -149,9 +149,9 @@ checkact() {
 pid=$(pgrep -f "hysteria-linux-$arch")
 
 if [ -n "$pid" ]; then
-  hy2zt="运行中"
+  hy2zt="Running"
 else
-  hy2zt="未运行"
+  hy2zt="Not running"
 fi
 }
 
@@ -170,7 +170,7 @@ BBR_grub() {
         grub-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
         grub-set-default 0
       else
-        echo -e "${Error} grub.conf/grub.cfg 找不到，请检查."
+        echo -e "${Error} grub.conf/grub.cfg not found, please check."
         exit
       fi
     elif [[ ${version} == "7" ]]; then
@@ -184,7 +184,7 @@ BBR_grub() {
         grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
         grub2-set-default 0
       else
-        echo -e "${Error} grub.cfg 找不到，请检查."
+        echo -e "${Error} grub.cfg not found, please check."
         exit
       fi
     elif [[ ${version} == "8" ]]; then
@@ -198,7 +198,7 @@ BBR_grub() {
         grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
         grub2-set-default 0
       else
-        echo -e "${Error} grub.cfg 找不到，请检查."
+        echo -e "${Error} grub.cfg not found, please check."
         exit
       fi
       grubby --info=ALL | awk -F= '$1=="kernel" {print i++ " : " $2}'
@@ -225,19 +225,19 @@ check_version() {
   check_github
 }
 installxanmod1 () {
-# 检查系统是否为 Debian 或 Ubuntu
+# Check if system is Debian or Ubuntu
 if [[ $(cat /etc/os-release) =~ ^(Debian|Ubuntu) ]]; then
-  echo "OJBK"
+  echo "OK"
 else
-  echo "系统不是 Debian 或 Ubuntu"
+  echo "System is not Debian or Ubuntu"
   exit 1
 fi
 
-# 检查系统架构
+# Check system architecture
 if [[ $(uname -m) =~ ^(x86_64|amd64) ]]; then
-  echo "正在安装中,请稍后……"
+  echo "Installing, please wait..."
 else
-  echo "系统架构不是 x86/amd64,牢弟,买个好点的吧"
+  echo "System architecture is not x86/amd64. Please use a compatible device."
   exit 1
 fi
 
@@ -246,8 +246,8 @@ wget -qO - https://dl.xanmod.org/archive.key | sudo gpg --dearmor -o /usr/share/
 echo 'deb [signed-by=/usr/share/keyrings/xanmod-archive-keyring.gpg] http://deb.xanmod.org releases main' | sudo tee /etc/apt/sources.list.d/xanmod-release.list
 sudo apt update && sudo apt install linux-xanmod-x64v3
 BBR_grub
-echo -e "${Tip} 内核安装完毕，请参考上面的信息检查是否安装成功,默认从排第一的高版本内核启动"
-echo "安装成功,请自行重启系统"
+echo -e "${Tip} Kernel installation complete. Please check the information above to confirm success. Default boot is the highest version kernel."
+echo "Installation successful. Please reboot the system manually."
 }
 installxanmod2 () {
   check_version
@@ -257,7 +257,7 @@ installxanmod2 () {
   echo -e "CPU supports \033[32m${cpu_level}\033[0m"
   # exit
   if [[ ${bit} != "x86_64" ]]; then
-    echo -e "${Error} 不支持x86_64以外的系统 !" && exit 1
+    echo -e "${Error} Only x86_64 system is supported!" && exit 1
   fi
 
   if [[ "${OS_type}" == "Debian" ]]; then
@@ -275,41 +275,41 @@ installxanmod2 () {
       apt update && apt install linux-xanmod-x64v1 -y
     fi
   else
-    echo -e "${Error} 不支持当前系统 ${release} ${version} ${bit} !" && exit 1
+    echo -e "${Error} Current system ${release} ${version} ${bit} is not supported!" && exit 1
   fi
 
   BBR_grub
-  echo -e "${Tip} 内核安装完毕，请参考上面的信息检查是否安装成功,默认从排第一的高版本内核启动,请自行重启系统"
+  echo -e "${Tip} Kernel installation complete. Please check the information above to confirm success. Default boot is the highest version kernel. Please reboot manually."
 }
 detele_kernel() {
   if [[ "${OS_type}" == "CentOS" ]]; then
     rpm_total=$(rpm -qa | grep kernel | grep -v "${kernel_version}" | grep -v "noarch" | wc -l)
     if [ "${rpm_total}" ] >"1"; then
-      echo -e "检测到 ${rpm_total} 个其余内核，开始卸载..."
+      echo -e "Detected ${rpm_total} other kernels, starting uninstall..."
       for ((integer = 1; integer <= ${rpm_total}; integer++)); do
         rpm_del=$(rpm -qa | grep kernel | grep -v "${kernel_version}" | grep -v "noarch" | head -${integer})
-        echo -e "开始卸载 ${rpm_del} 内核..."
+        echo -e "Uninstalling ${rpm_del} kernel..."
         rpm --nodeps -e ${rpm_del}
-        echo -e "卸载 ${rpm_del} 内核卸载完成，继续..."
+        echo -e "Uninstallation of ${rpm_del} kernel complete, continuing..."
       done
-      echo --nodeps -e "内核卸载完毕，继续..."
+      echo --nodeps -e "Kernel uninstallation complete, continuing..."
     else
-      echo -e " 检测到 内核 数量不正确，请检查 !" && exit 1
+      echo -e " Incorrect number of kernels detected, please check!" && exit 1
     fi
   elif [[ "${OS_type}" == "Debian" ]]; then
     deb_total=$(dpkg -l | grep linux-image | awk '{print $2}' | grep -v "${kernel_version}" | wc -l)
     if [ "${deb_total}" ] >"1"; then
-      echo -e "检测到 ${deb_total} 个其余内核，开始卸载..."
+      echo -e "Detected ${deb_total} other kernels, starting uninstall..."
       for ((integer = 1; integer <= ${deb_total}; integer++)); do
         deb_del=$(dpkg -l | grep linux-image | awk '{print $2}' | grep -v "${kernel_version}" | head -${integer})
-        echo -e "开始卸载 ${deb_del} 内核..."
+        echo -e "Uninstalling ${deb_del} kernel..."
         apt-get purge -y ${deb_del}
         apt-get autoremove -y
-        echo -e "卸载 ${deb_del} 内核卸载完成，继续..."
+        echo -e "Uninstallation of ${deb_del} kernel complete, continuing..."
       done
-      echo -e "内核卸载完毕，继续..."
+      echo -e "Kernel uninstallation complete, continuing..."
     else
-      echo -e " 检测到 内核 数量不正确，请检查 !" && exit 1
+      echo -e " Incorrect number of kernels detected, please check!" && exit 1
     fi
   fi
 }
@@ -317,37 +317,37 @@ detele_kernel_head() {
   if [[ "${OS_type}" == "CentOS" ]]; then
     rpm_total=$(rpm -qa | grep kernel-headers | grep -v "${kernel_version}" | grep -v "noarch" | wc -l)
     if [ "${rpm_total}" ] >"1"; then
-      echo -e "检测到 ${rpm_total} 个其余head内核，开始卸载..."
+      echo -e "Detected ${rpm_total} other kernel headers, starting uninstall..."
       for ((integer = 1; integer <= ${rpm_total}; integer++)); do
         rpm_del=$(rpm -qa | grep kernel-headers | grep -v "${kernel_version}" | grep -v "noarch" | head -${integer})
-        echo -e "开始卸载 ${rpm_del} headers内核..."
+        echo -e "Uninstalling ${rpm_del} kernel headers..."
         rpm --nodeps -e ${rpm_del}
-        echo -e "卸载 ${rpm_del} 内核卸载完成，继续..."
+        echo -e "Uninstallation of ${rpm_del} kernel headers complete, continuing..."
       done
-      echo --nodeps -e "内核卸载完毕，继续..."
+      echo --nodeps -e "Kernel headers uninstallation complete, continuing..."
     else
-      echo -e " 检测到 内核 数量不正确，请检查 !" && exit 1
+      echo -e " Incorrect number of kernels detected, please check!" && exit 1
     fi
   elif [[ "${OS_type}" == "Debian" ]]; then
     deb_total=$(dpkg -l | grep linux-headers | awk '{print $2}' | grep -v "${kernel_version}" | wc -l)
     if [ "${deb_total}" ] >"1"; then
-      echo -e "检测到 ${deb_total} 个其余head内核，开始卸载..."
+      echo -e "Detected ${deb_total} other kernel headers, starting uninstall..."
       for ((integer = 1; integer <= ${deb_total}; integer++)); do
         deb_del=$(dpkg -l | grep linux-headers | awk '{print $2}' | grep -v "${kernel_version}" | head -${integer})
-        echo -e "开始卸载 ${deb_del} headers内核..."
+        echo -e "Uninstalling ${deb_del} kernel headers..."
         apt-get purge -y ${deb_del}
         apt-get autoremove -y
-        echo -e "卸载 ${deb_del} 内核卸载完成，继续..."
+        echo -e "Uninstallation of ${deb_del} kernel headers complete, continuing..."
       done
-      echo -e "内核卸载完毕，继续..."
+      echo -e "Kernel uninstallation complete, continuing..."
     else
-      echo -e " 检测到 内核 数量不正确，请检查 !" && exit 1
+      echo -e " Incorrect number of kernels detected, please check!" && exit 1
     fi
   fi
 }
 detele_kernel_custom() {
   BBR_grub
-  read -p " 查看上面内核输入需保留保留保留的内核关键词(如:5.15.0-11) :" kernel_version
+  read -p " Check the kernels above and enter the kernel keyword to KEEP (e.g., 5.15.0-11) :" kernel_version
   detele_kernel
   detele_kernel_head
   BBR_grub
@@ -362,13 +362,13 @@ echo -e "$(random_color '
 ░██  ░██     ░█             ░█ ░█      ░█  ░█     ░█░█░█
 ░██  ░██      ░██  █         ░█         ░█                   ')"
  echo -e "$(random_color '
-人生有两出悲剧：一是万念俱灰，另一是踌躇满志 ')"
+Echoes of Life: One is despair, the other is complacency. ')"
  
 }
 
-echo -e "$(random_color '安装必要依赖中......')"
+echo -e "$(random_color 'Installing necessary dependencies......')"
 install_missing_commands > /dev/null 2>&1
-echo -e "$(random_color '依赖安装完成')"
+echo -e "$(random_color 'Dependencies installation complete')"
 
 set_architecture
 
@@ -384,36 +384,36 @@ sudo systemctl stop hysteria.service
 
 sudo systemctl disable hysteria.service
 
-if [ -f "/etc/systemd/system/hysteria.service" ]; then
+  if [ -f "/etc/systemd/system/hysteria.service" ]; then
   sudo rm "/etc/systemd/system/hysteria.service"
-  echo "Hysteria 服务器服务文件已删除。"
+  echo "Hysteria server service file deleted."
 else
-  echo "Hysteria 服务器服务文件不存在。"
+  echo "Hysteria server service file does not exist."
 fi
 
 process_name="hysteria-linux-$arch"
 pid=$(pgrep -f "$process_name")
 
 if [ -n "$pid" ]; then
-  echo "找到 $process_name 进程 (PID: $pid)，正在杀死..."
+  echo "Found $process_name process (PID: $pid), killing..."
   kill "$pid"
-  echo "$process_name 进程已被杀死。"
+  echo "$process_name process killed."
 else
-  echo "未找到 $process_name 进程。"
+  echo "Process $process_name not found."
 fi
 
 if [ -f "/root/hy3/hysteria-linux-$arch" ]; then
   rm -f "/root/hy3/hysteria-linux-$arch"
-  echo "Hysteria 服务器二进制文件已删除。"
+  echo "Hysteria server binary deleted."
 else
-  echo "Hysteria 服务器二进制文件不存在。"
+  echo "Hysteria server binary not found."
 fi
 
 if [ -f "/root/hy3/config.yaml" ]; then
   rm -f "/root/hy3/config.yaml"
-  echo "Hysteria 服务器配置文件已删除。"
+  echo "Hysteria server config file deleted."
 else
-  echo "Hysteria 服务器配置文件不存在。"
+  echo "Hysteria server config file not found."
 fi
 
 rm -rf /root/hy3
@@ -421,36 +421,39 @@ systemctl stop ipppp.service
 systemctl disable ipppp.service
 rm -rf /etc/systemd/system/ipppp.service
 rm -rf /bin/hy2
-echo "卸载完成(ง ื▿ ื)ว."
+echo "Uninstall complete."
  }
 
 hy2easy() {
     rm -rf /usr/local/bin/hy2
-    sudo wget -q hy2.crazyact.com -O /usr/local/bin/hy2
-    sudo chmod +x /usr/local/bin/hy2
-    echo "已添加 hy2 快捷方式"
+    cat <<EOF > /usr/local/bin/hy2
+#!/bin/bash
+wget -O hy2.py https://raw.githubusercontent.com/pxzeven/hysteria2_english/main/hysteria2.py && chmod +x hy2.py && python3 hy2.py
+EOF
+    chmod +x /usr/local/bin/hy2
+    echo "hy2 shortcut added"
 }
 
 hy2easy
 welcome
 
-#这些就行提示你输入的😇
-echo "$(random_color '选择一个操作，小崽子(ง ื▿ ื)ว：')"
-echo -e "$(random_color '输入hy2快捷启动脚本')"
-echo "1. 安装(以梦为马)"
-echo "2. 卸载(以心为疆)"
+# Prompt for input
+echo "$(random_color 'Select an option:')"
+echo -e "$(random_color 'Enter hy2 to quick start script')"
+echo "1. Install"
+echo "2. Uninstall"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "3. 查看配置(穿越时空)"
-echo "4. 退出脚本(回到未来)"
+echo "3. View Config"
+echo "4. Exit"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "5. 在线更新hy2内核(您当前的hy2版本:$version)"
-echo "6. hy2内核管理"
-echo "7. 安装xanmod内核(更好的调动网络资源)"
-echo "hy2内核最新版本为： $latest_version"
+echo "5. Online update hy2 core (Current version: $version)"
+echo "6. Manage hy2 core"
+echo "7. Install Xanmod kernel (Better network performance)"
+echo "Latest hy2 version: $latest_version"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "hysteria2状态: $hy2zt"
+echo "Hysteria2 Status: $hy2zt"
 
-read -p "输入操作编号 (1/2/3/4/5): " choice
+read -p "Enter option number (1-7): " choice
 
 case $choice in
    1)
@@ -460,8 +463,8 @@ case $choice in
    2)
 
 uninstall_hysteria > /dev/null 2>&1
-echo -e "$(random_color '你别急,别急,正在卸载......')"
-echo -e "$(random_color '卸载完成,老登ψ(｀∇´)ψ！')"
+echo -e "$(random_color 'Uninstalling, please wait...')"
+echo -e "$(random_color 'Uninstall complete!')"
 
      exit
      ;;
@@ -474,7 +477,7 @@ echo -e "$(random_color '卸载完成,老登ψ(｀∇´)ψ！')"
 
    3)
 
-echo "$(random_color '下面是你的nekobox节点信息')"
+echo "$(random_color 'Below is your nekobox node info')"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 cd /root/hy3/
@@ -483,7 +486,7 @@ cat /root/hy3/neko.txt
 
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "$(random_color '下面是你的clashmate配置')"
+echo "$(random_color 'Below is your clashmate config')"
 
 cat /root/hy3/clash-mate.yaml
 
@@ -497,7 +500,7 @@ get_updated_version() {
     if [ -x "/root/hy3/hysteria-linux-$arch" ]; then
         version2="$("/root/hy3/hysteria-linux-$arch" version | grep Version | grep -o 'v[.0-9]*')"
     else
-        version2="你还没有安装,老登"
+        version2="Not installed yet"
     fi
 }
 
@@ -507,11 +510,11 @@ process_name="hysteria-linux-$arch"
 pid=$(pgrep -f "$process_name")
 
 if [ -n "$pid" ]; then
-  echo "找到 $process_name 进程 (PID: $pid)，正在杀死..."
+  echo "Found $process_name process (PID: $pid), killing..."
   kill "$pid"
-  echo "$process_name 进程已被杀死。"
+  echo "$process_name process killed."
 else
-  echo "未找到 $process_name 进程。"
+  echo "Process $process_name not found."
 fi
 
 cd /root/hy3
@@ -524,7 +527,7 @@ else
   if wget -O hysteria-linux-$arch https://github.com/apernet/hysteria/releases/download/app/$latest_version/hysteria-linux-$arch; then
     chmod +x hysteria-linux-$arch
   else
-    echo "无法从任何网站下载文件"
+    echo "Cannot download file from any website"
     exit 1
   fi
 fi
@@ -532,33 +535,33 @@ fi
 systemctl stop hysteria.service
 systemctl start hysteria.service
 
-echo "更新完成,不是哥们,你有什么实力,你直接给我坐下(ง ื▿ ื)ว."
+echo "Update complete."
 }
-echo "$(random_color '正在更新中,别急,老登')"
+echo "$(random_color 'Updating, please wait...')"
 sleep 1
 updatehy2 > /dev/null 2>&1
-echo "$(random_color '更新完成,老登')"
+echo "$(random_color 'Update complete.')"
 get_updated_version
-echo "您当前的更新后hy2版本:$version2"
+echo "Your current updated hy2 version: $version2"
 
       exit
       ;;
 
     6)
 
-echo "输入1启动hy2内核,输入2关闭hy2内核,输入3重启hy2内核"
+echo "Enter 1 to start, 2 to stop, 3 to restart hy2 core"
 read choicehy2
 if [ "$choicehy2" = "1" ]; then
 sudo systemctl start hysteria.service
-echo "hy2内核启动成功"
+echo "hy2 core started successfully"
 elif [ "$choicehy2" = "2" ]; then
 sudo systemctl stop hysteria.service
-echo "hy2内核关闭成功"
+echo "hy2 core stopped successfully"
 elif [ "$choicehy2" = "3" ]; then
 sudo systemctl restart hysteria.service
-echo "hy2内核重启成功"
+echo "hy2 core restarted successfully"
 else
-  echo "请输入正确选项"
+  echo "Please enter a valid choice"
 fi
 
       exit
@@ -567,7 +570,7 @@ fi
 
    7)
 
-echo "输入y安装,输入n取消,输入o卸载 (y/n/o)"
+echo "Enter y to install, n to cancel, o to uninstall (y/n/o)"
 read answer
 if [ "$answer" = "y" ]; then
 check_sys
@@ -585,21 +588,21 @@ fi
      ;;
 
    *)
-     echo "$(random_color '无效的选择，退出脚本。')"
+     echo "$(random_color 'Invalid choice, exiting script.')"
 
      exit
      ;;
 
 esac
 
-echo "$(random_color '别急,别急,别急,老登')"
+echo "$(random_color 'Please wait...')"
 sleep 1
 
-if [ "$hy2zt" = "运行中" ]; then
-  echo "Hysteria 正在运行，请先卸载再安装。"
+if [ "$hy2zt" = "Running" ]; then
+  echo "Hysteria is running, please uninstall first."
   exit 1
 else
-  echo "原神,启动。"
+  echo "Starting..."
 fi
 
 uninstall_hysteria > /dev/null 2>&1
@@ -628,7 +631,7 @@ installhy2 () {
   echo "Download URL: $DOWNLOAD_URL"
 }
 
-echo "$(random_color '正在下载中,老登( ﾟдﾟ)つBye')"
+echo "$(random_color 'Downloading...')"
 sleep 1
 installhy2 > /dev/null 2>&1
 
@@ -665,7 +668,7 @@ udpIdleTimeout: 90s
 EOL
 
 while true; do
-    echo "$(random_color '请输入端口号（留空默认443，输入0随机2000-60000，你可以输入1-65630指定端口号）: ')"
+    echo "$(random_color 'Enter port (Leave blank for 443, 0 for random 2000-60000, or specific 1-65535): ')"
     read -p "" port
   
     if [ -z "$port" ]; then
@@ -673,38 +676,38 @@ while true; do
     elif [ "$port" -eq 0 ]; then
       port=$((RANDOM % 58001 + 2000))
     elif ! [[ "$port" =~ ^[0-9]+$ ]]; then
-      echo "$(random_color '我的动物朋友，请输入数字好吧，请重新输入端口号：')"
+      echo "$(random_color 'Please enter a valid number, try again: ')"
       continue
     fi
   
     while netstat -tuln | grep -q ":$port "; do
-      echo "$(random_color '端口已被占用，请重新输入端口号：')"
+      echo "$(random_color 'Port occupied, please enter another port: ')"
       read -p "" port
     done
   
     if sed -i "s/443/$port/" config.yaml; then
-      echo "$(random_color '端口号已设置为：')" "$port"
+      echo "$(random_color 'Port set to: ')" "$port"
     else
-      echo "$(random_color '替换端口号失败，退出脚本。')"
+      echo "$(random_color 'Failed to set port, exiting.')"
       exit 1
     fi
   
 
 generate_certificate() {
-    read -p "请输入要用于自签名证书的域名（默认为 bing.com）: " user_domain
+    read -p "Enter domain for self-signed cert (Default bing.com): " user_domain
     domain_name=${user_domain:-"bing.com"}
     if curl --output /dev/null --silent --head --fail "$domain_name"; then
         mkdir -p /etc/ssl/private
         openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) -keyout "/etc/ssl/private/$domain_name.key" -out "/etc/ssl/private/$domain_name.crt" -subj "/CN=$domain_name" -days 36500
         chmod 777 "/etc/ssl/private/$domain_name.key" "/etc/ssl/private/$domain_name.crt"
-        echo -e "自签名证书和私钥已生成！"
+        echo -e "Self-signed certificate and private key generated!"
     else
-        echo -e "无效的域名或域名不可用，请输入有效的域名！"
+        echo -e "Invalid domain or domain unreachable, please enter a valid domain!"
         generate_certificate
     fi
 }
 
-read -p "请选择证书类型（输入 1 使用ACME证书,输入 2 使用自签名证书,回车默认acme证书申请）: " cert_choice
+read -p "Select certificate type (1 for ACME, 2 for Self-signed, Enter for ACME default): " cert_choice
 
 if [ "$cert_choice" == "2" ]; then
     generate_certificate
@@ -712,18 +715,18 @@ if [ "$cert_choice" == "2" ]; then
     certificate_path="/etc/ssl/private/$domain_name.crt"
     private_key_path="/etc/ssl/private/$domain_name.key"
 
-    echo -e "证书文件已保存到 /etc/ssl/private/$domain_name.crt"
-    echo -e "私钥文件已保存到 /etc/ssl/private/$domain_name.key"
+    echo -e "Certificate file saved to /etc/ssl/private/$domain_name.crt"
+    echo -e "Private key file saved to /etc/ssl/private/$domain_name.key"
 
     temp_file=$(mktemp)
     echo -e "temp_file: $temp_file"
     sed '3i\tls:\n  cert: '"/etc/ssl/private/$domain_name.crt"'\n  key: '"/etc/ssl/private/$domain_name.key"'' /root/hy3/config.yaml > "$temp_file"
     mv "$temp_file" /root/hy3/config.yaml
     touch /root/hy3/ca
-   #这里加了一个小的变量
+   # Added a small variable here
     ovokk="insecure=1&"
     choice1="true"
-    echo -e "已将证书和密钥信息写入 /root/hy3/config.yaml 文件。"
+    echo -e "Certificate and key info written to /root/hy3/config.yaml."
     
 get_ipv4_info() {
   ip_address=$(wget -4 -qO- --no-check-certificate --user-agent=Mozilla --tries=2 --timeout=3 http://ip-api.com/json/) &&
@@ -731,7 +734,7 @@ get_ipv4_info() {
   ispck=$(expr "$ip_address" : '.*isp\":[ ]*\"\([^"]*\).*')
 
   if echo "$ispck" | grep -qi "cloudflare"; then
-    echo "检测到Warp，请输入正确的服务器 IP："
+    echo "Warp detected, please enter correct server IP:"
     read new_ip
     ipwan="$new_ip"
   else
@@ -745,7 +748,7 @@ get_ipv6_info() {
   ispck=$(expr "$ip_address" : '.*isp\":[ ]*\"\([^"]*\).*')
 
   if echo "$ispck" | grep -qi "cloudflare"; then
-    echo "检测到Warp，请输入正确的服务器 IP："
+    echo "Warp detected, please enter correct server IP:"
     read new_ip
     ipwan="[$new_ip]"
   else
@@ -754,34 +757,34 @@ get_ipv6_info() {
 }
 
 while true; do
-  echo "1. IPv4 模式"
-  echo "2. IPv6 模式"
-  echo "按回车键选择默认的 IPv4 模式."
+  echo "1. IPv4 Mode"
+  echo "2. IPv6 Mode"
+  echo "Press Enter to select default IPv4 Mode."
 
-  read -p "请选择: " choice
+  read -p "Please select: " choice
 
   case $choice in
     1)
       get_ipv4_info
-      echo "老登你的IP 地址为：$ipwan"
+      echo "Your IP Address is: $ipwan"
       ipta="iptables"
       break
       ;;
     2)
       get_ipv6_info
-      echo "老登你的IP 地址为：$ipwan"
+      echo "Your IP Address is: $ipwan"
       ipta="ip6tables"
       break
       ;;
     "")
-      echo "使用默认的 IPv4 模式。"
+      echo "Using default IPv4 Mode."
       get_ipv4_info
-      echo "老登你的IP 地址为：$ipwan"
+      echo "Your IP Address is: $ipwan"
       ipta="iptables"
       break
       ;;
     *)
-      echo "输入无效。请输入1或2，或者按回车键使用默认的 IPv4 模式。"
+      echo "Invalid input. Please enter 1 or 2, or press Enter for default IPv4 Mode."
       ;;
   esac
 done
@@ -789,19 +792,19 @@ done
 fi
 
 if [ -f "/root/hy3/ca" ]; then
-  echo "$(random_color '/root/hy3/ 文件夹中已存在名为 ca 的文件。跳过添加操作。')"
+  echo "$(random_color '/root/hy3/ folder already contains a file named ca. Skipping addition.')"
 else
 
-  echo "$(random_color '请输入你的域名（必须是解析好的域名哦）: ')"
+  echo "$(random_color 'Enter your domain (Must be resolved): ')"
   read -p "" domain
 
   while [ -z "$domain" ]; do
-    echo "$(random_color '域名不能为空，请重新输入: ')"
+    echo "$(random_color 'Domain cannot be empty, please re-enter: ')"
     read -p "" domain
   done
 
 
-  echo "$(random_color '请输入你的邮箱（默认随机邮箱）: ')"
+  echo "$(random_color 'Enter your email (Default random): ')"
   read -p "" email
 
   if [ -z "$email" ]; then
@@ -814,20 +817,20 @@ else
   if [ -f "config.yaml" ]; then
     echo -e "\nAppending to config.yaml..."
     sed -i '3i\acme:\n  domains:\n    - '$domain'\n  email: '$email'' config.yaml
-    echo "$(random_color '域名和邮箱已添加到 config.yaml 文件。')"
+    echo "$(random_color 'Domain and email added to config.yaml.')"
     ipta="iptables"
     choice2="false"
   else
-    echo "$(random_color 'config.yaml 文件不存在，无法添加。')"
+    echo "$(random_color 'config.yaml not found, cannot add.')"
     exit 1
   fi
 fi
 
-echo "请选择一个选项:"
-echo "1. 是否开启dns申请证书方式(默认cloudflare申请方式,需要api令牌,邮箱必须为注册邮箱)"
-echo "2. 跳过(自签用户和不知道这个的回车默认直接跳过就行)"
+echo "Please select an option:"
+echo "1. Enable DNS certificate application (Default Cloudflare, requires API token, email must be registered)"
+echo "2. Skip (Self-signed users or unsure, default skip)"
 
-read -p "请输入你的选择 (1或2): " choice
+read -p "Enter your choice (1 or 2): " choice
 
 # 如果用户直接按回车，默认选择2
 if [ -z "$choice" ]; then
@@ -835,13 +838,13 @@ if [ -z "$choice" ]; then
 fi
 
 if [ "$choice" -eq 1 ]; then
-    read -p "请输入Cloudflare的API令牌: " api_key
+    read -p "Enter Cloudflare API Token: " api_key
 
-    # 查找email行的位置
+    # Find the line number of 'email'
     line_number=$(grep -n "email" /root/hy3/config.yaml | cut -d: -f1)
 
     if [ -z "$line_number" ]; then
-        echo "未找到email行，请检查配置文件。"
+        echo "Email line not found, please check config file."
         exit 1
     fi
 
@@ -852,12 +855,12 @@ if [ "$choice" -eq 1 ]; then
     config:\\
       cloudflare_api_token: $api_key" /root/hy3/config.yaml
 
-    echo "配置已成功添加到/root/hy3/config.yaml"
+    echo "Configuration successfully added to /root/hy3/config.yaml"
 else
-    echo "跳过DNS配置步骤。"
+    echo "Skipping DNS configuration."
 fi
 
-echo "$(random_color '请输入你的密码（留空将生成随机密码，不超过20个字符）: ')"
+echo "$(random_color 'Enter your password (Leave blank for random, max 20 chars): ')"
 read -p "" password
 
 if [ -z "$password" ]; then
@@ -865,13 +868,13 @@ if [ -z "$password" ]; then
 fi
 
 if sed -i "s/Se7RAuFZ8Lzg/$password/" config.yaml; then
-  echo "$(random_color '密码已设置为：')" $password
+  echo "$(random_color 'Password set to: ')" $password
 else
-  echo "$(random_color '替换密码失败，退出脚本。')"
+  echo "$(random_color 'Failed to set password, exiting.')"
   exit 1
 fi
 
-echo "$(random_color '请输入伪装网址（默认https://news.ycombinator.com/）: ')"
+echo "$(random_color 'Enter masquerade URL (Default https://news.ycombinator.com/): ')"
 read -p "" masquerade_url
 
 if [ -z "$masquerade_url" ]; then
@@ -879,13 +882,13 @@ if [ -z "$masquerade_url" ]; then
 fi
 
 if sed -i "s|https://news.ycombinator.com/|$masquerade_url|" config.yaml; then
-  echo "$(random_color '伪装域名已设置为：')" $masquerade_url
+  echo "$(random_color 'Masquerade URL set to: ')" $masquerade_url
 else
-  echo "$(random_color '替换伪装域名失败，退出脚本。')"
+  echo "$(random_color 'Failed to set masquerade URL, exiting.')"
   exit 1
 fi
    
-    echo "$(random_color '是否要开启端口跳跃功能？如果你不知道是干啥的，就衮吧，不用开启(ง ื▿ ื)ว（回车默认不开启，输入1开启）: ')"
+    echo "$(random_color 'Enable port hopping? (Enter to skip, 1 to enable): ')"
     read -p "" port_jump
   
     if [ -z "$port_jump" ]; then
@@ -893,22 +896,22 @@ fi
       break
     elif [ "$port_jump" -eq 1 ]; then
     
-      echo "$(random_color '请输入起始端口号(起始端口必须小于末尾端口): ')"
+      echo "$(random_color 'Enter start port (Start must be < End): ')"
       read -p "" start_port
   
-      echo "$(random_color '请输入末尾端口号(末尾端口必须大于起始端口): ')"
+      echo "$(random_color 'Enter end port (End must be > Start): ')"
       read -p "" end_port
   
      if [ "$start_port" -lt "$end_port" ]; then
 
 "$ipta" -t nat -A PREROUTING -i eth0 -p udp --dport "$start_port":"$end_port" -j DNAT --to-destination :"$port"
-        echo "$(random_color '端口跳跃功能已开启，将范围重定向到主端口：')" "$port"
+        echo "$(random_color 'Port hopping enabled, redirecting range to main port: ')" "$port"
         break
       else
-        echo "$(random_color '末尾端口必须大于起始端口，请重新输入。')"
+        echo "$(random_color 'End port must be > Start port, please re-enter.')"
       fi
     else
-      echo "$(random_color '输入无效，请输入1开启端口跳跃功能，或直接按回车跳过。')"
+      echo "$(random_color 'Invalid input. Enter 1 to enable or Enter to skip.')"
     fi
 done
 
@@ -934,7 +937,7 @@ if [ -n "$port_jump" ] && [ "$port_jump" -eq 1 ]; then
   # 启动服务
   systemctl start ipppp.service
   
-  echo "$(random_color '已创建/ipppp.sh脚本文件并设置开机自启动。')"
+  echo "$(random_color '/ipppp.sh created and set to auto-start.')"
 fi
 
 fuser -k -n udp $port
@@ -982,16 +985,16 @@ EOL
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "
-clash-mate.yaml 已保存到当前文件夹
+clash-mate.yaml saved to current folder
 "
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 
 if nohup ./hysteria-linux-$arch server & then
   echo "$(random_color '
-  Hysteria 服务器已启动。')"
+  Hysteria Server started.')"
 else
-  echo "$(random_color '启动 Hysteria 服务器失败，退出脚本。')"
+  echo "$(random_color 'Failed to start Hysteria Server, exiting.')"
   exit 1
 fi
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
@@ -1015,9 +1018,9 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-    echo "Hysteria服务器服务文件已创建和配置."
+    echo "Hysteria server service file created and configured."
   else
-    echo "Hysteria目录或可执行文件不存在，请检查路径."
+    echo "Hysteria directory or executable not found, check path."
     exit 1
   fi
 }
@@ -1026,9 +1029,9 @@ enable_and_start_service() {
   if [ -f "$hysteria_service_file" ]; then
     systemctl enable hysteria.service
     systemctl start hysteria.service
-    echo "Hysteria服务器服务已启用自启动并成功启动."
+    echo "Hysteria server service enabled and started."
   else
-    echo "Hysteria服务文件不存在，请先创建并配置服务文件."
+    echo "Hysteria service file not found, please create config first."
     exit 1
   fi
 }
@@ -1038,15 +1041,15 @@ enable_and_start_service
 
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "
-完成。
+Done.
 "
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 
-echo "$(random_color '老登,马上,马上了------')"
+echo "$(random_color 'Almost done...') "
 sleep 2
 
 echo "$(random_color '
-这是你的clash配置:')"
+Here is your clash config:')"
 cat /root/hy3/clash-mate.yaml
 
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
@@ -1054,13 +1057,13 @@ echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 
 if [ -n "$start_port" ] && [ -n "$end_port" ]; then
 
-  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存哦joker(老登，请使用最新版的neko哦): ')\nhysteria2://$password@$ipwan$domain:$port/?${ovokk}mport=$port,$start_port-$end_port&sni=$domain$domain_name#Hysteria2"
+  echo -e "$(random_color 'Here is your Hysteria2 node link info, please save it (Please use latest neko): ')\nhysteria2://$password@$ipwan$domain:$port/?${ovokk}mport=$port,$start_port-$end_port&sni=$domain$domain_name#Hysteria2"
   
   echo "hysteria2://$password@$ipwan$domain:$port/?${ovokk}mport=$port,$start_port-$end_port&sni=$domain$domain_name#Hysteria2" > neko.txt
   
 else
 
-  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存哦小崽子: ')\nhysteria2://$password@$ipwan$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2"
+  echo -e "$(random_color 'Here is your Hysteria2 node link info, please save it: ')\nhysteria2://$password@$ipwan$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2"
   
   echo "hysteria2://$password@$ipwan$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2" > neko.txt
   
@@ -1068,4 +1071,4 @@ fi
 
 echo -e "$(random_color '
 
-Hysteria2安装成功，请合理使用哦,你直直-——直直接给我坐下')"
+Hysteria2 installation successful, please use responsibly.')"
